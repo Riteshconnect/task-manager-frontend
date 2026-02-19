@@ -9,6 +9,10 @@ function Dashboard() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+
   // Fetch tasks
   const fetchTasks = async () => {
 
@@ -58,7 +62,45 @@ function Dashboard() {
 
   };
 
-  // DELETE TASK — MUST BE INSIDE COMPONENT
+  // Start editing
+  const startEdit = (task) => {
+
+    setEditingTaskId(task._id);
+    setEditTitle(task.title);
+    setEditDescription(task.description);
+
+  };
+
+  // Update task
+  const updateTask = async () => {
+
+    try {
+
+      await API.put(
+        `/tasks/${editingTaskId}`,
+        {
+          title: editTitle,
+          description: editDescription,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setEditingTaskId(null);
+      fetchTasks();
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  // Delete task
   const deleteTask = async (id) => {
 
     try {
@@ -79,11 +121,15 @@ function Dashboard() {
 
   };
 
-  useEffect(() => {
-      if (!token) {
-    window.location.href = "/";
-  }
+  // Logout
+  const logout = () => {
 
+    localStorage.removeItem("token");
+    window.location.href = "/";
+
+  };
+
+  useEffect(() => {
 
     fetchTasks();
 
@@ -91,21 +137,17 @@ function Dashboard() {
 
   return (
 
-    <div>
-        <button onClick={() => {
-  localStorage.removeItem("token");
-  window.location.href = "/";
-}}>
-  Logout
-</button>
+    <div className="container">
 
+      <button onClick={logout}>
+        Logout
+      </button>
 
       <h2>Dashboard</h2>
 
       <h3>Create Task</h3>
 
       <input
-        type="text"
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -114,7 +156,6 @@ function Dashboard() {
       <br />
 
       <input
-        type="text"
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
@@ -135,17 +176,55 @@ function Dashboard() {
       ) : (
 
         tasks.map((task) => (
-          <div key={task._id}>
 
-            <h4>{task.title}</h4>
+          <div key={task._id} className="task-card">
 
-            <p>{task.description}</p>
+            {editingTaskId === task._id ? (
 
-            <button onClick={() => deleteTask(task._id)}>
-              Delete
-            </button>
+              <>
+
+                <input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
+
+                <input
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                />
+
+                <button onClick={updateTask}>
+                  Save
+                </button>
+
+                <button onClick={() => setEditingTaskId(null)}>
+                  Cancel
+                </button>
+
+              </>
+
+            ) : (
+
+              <>
+
+                <h4>{task.title}</h4>
+
+                <p>{task.description}</p>
+
+                <button onClick={() => startEdit(task)}>
+                  Edit
+                </button>
+
+                <button onClick={() => deleteTask(task._id)}>
+                  Delete
+                </button>
+
+              </>
+
+            )}
 
           </div>
+
         ))
 
       )}
