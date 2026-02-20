@@ -1,23 +1,58 @@
+import { useState } from "react";
 import Login from "./pages/login";
+import Register from "./pages/register";
 import Dashboard from "./pages/Dashboard";
 import "./App.css";
 
-
 function App() {
 
-    const token = localStorage.getItem("token");
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [showRegister, setShowRegister] = useState(false);
 
-    return (
+  const handleLogin = (newToken) => {
 
-        <div>
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
 
-            <h1>Task Manager</h1>
+  };
 
-            {token ? <Dashboard /> : <Login />}
+  const handleRegisterSuccess = () => {
 
-        </div>
+    setShowRegister(false);
 
-    );
+  };
+
+  if (token) {
+    return <Dashboard />;
+  }
+
+  return (
+
+    <div className="container">
+
+      {showRegister ? (
+
+        <>
+          <Register onRegister={handleRegisterSuccess} />
+          <button onClick={() => setShowRegister(false)}>
+            Go to Login
+          </button>
+        </>
+
+      ) : (
+
+        <>
+          <Login onLogin={handleLogin} />
+          <button onClick={() => setShowRegister(true)}>
+            Create Account
+          </button>
+        </>
+
+      )}
+
+    </div>
+
+  );
 
 }
 
